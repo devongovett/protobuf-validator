@@ -183,4 +183,102 @@ describe('protobuf-validator', function() {
       bar: 2
     });
   });
+  
+  describe('options', function() {
+    it('should validate length of strings', function() {
+      assert.throws(function() {
+        validate('Options', {
+          test1: 'hi'
+        });
+      }, /Options.test1 must have length = 5/);
+      
+      validate('Options', {
+        test1: '12345'
+      });
+    });
+    
+    it('should validate min and max length of strings', function() {
+      assert.throws(function() {
+        validate('Options', {
+          test2: '1'
+        });
+      }, /Options.test2 must have length >= 2/);
+      
+      assert.throws(function() {
+        validate('Options', {
+          test2: '123456'
+        });
+      }, /Options.test2 must have length <= 5/);
+      
+      validate('Options', {
+        test2: '1234'
+      });
+    });
+    
+    it('should validate min and max of numbers', function() {
+      assert.throws(function() {
+        validate('Options', {
+          test3: 1
+        });
+      }, /Options.test3 must be >= 2/);
+      
+      assert.throws(function() {
+        validate('Options', {
+          test3: 10
+        });
+      }, /Options.test3 must be <= 5/);
+      
+      validate('Options', {
+        test3: 3
+      });
+    });
+    
+    it('should validate the length of arrays, and strings inside', function() {
+      assert.throws(function() {
+        validate('Options', {
+          test4: ['test']
+        });
+      }, /Options.test4 must have length = 2/);
+      
+      assert.throws(function() {
+        validate('Options', {
+          test4: ['test', 'test2']
+        });
+      }, /Options.test4\[0\] must have length = 2/);
+      
+      validate('Options', {
+        test4: ['ab', 'cd']
+      });
+    });
+    
+    it('should validate the length of arrays, and numbers inside', function() {
+      assert.throws(function() {
+        validate('Options', {
+          test5: [3]
+        });
+      }, /Options.test5 must have length >= 2/);
+      
+      assert.throws(function() {
+        validate('Options', {
+          test5: [1, 2, 3, 4, 5, 6]
+        });
+      }, /Options.test5 must have length <= 5/);
+      
+      assert.throws(function() {
+        validate('Options', {
+          test5: [1, 10]
+        });
+      }, /Options.test5\[0\] must be >= 2/);
+      
+      assert.throws(function() {
+        validate('Options', {
+          test5: [3, 10]
+        });
+      }, /Options.test5\[1\] must be <= 5/);
+      
+      validate('Options', {
+        test5: [3, 4]
+      });
+    });
+  });
 });

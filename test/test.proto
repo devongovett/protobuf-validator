@@ -46,3 +46,11 @@ message OneOf {
     int32 bar = 1;
   }
 }
+
+message Options {
+  optional string test1 = 0 [length = 5];
+  optional string test2 = 1 [minLength = 2, maxLength = 5];
+  optional int32 test3 = 2 [min = 2, max = 5];
+  repeated string test4 = 3 [length = 2, itemLength = 2];
+  repeated int32 test5 = 4 [minLength = 2, maxLength = 5, itemMin = 2, itemMax = 5];
+}

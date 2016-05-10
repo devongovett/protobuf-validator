@@ -56,13 +56,17 @@ ProtobufValidator.prototype.resolve = function(type, from) {
 /**
  * Checks whether the given value is valid for the provided type
  */
-ProtobufValidator.prototype.check = function(path, type, value) {
+ProtobufValidator.prototype.check = function(path, type, value, options) {
   if (typeof type === 'string') {
-    if (!primitive[type](value))
+    if (!primitive[type](value)) {
       throw new Error(path + ' must be a valid ' + type + ' value.');
+    }
+    
+    this.checkOptions(options, value, path);
   } else if (this.enums[type.id]) {
-    if (!type.values.hasOwnProperty(value))
+    if (!type.values.hasOwnProperty(value)) {
       throw new Error(path + ' must be one of ("' + Object.keys(type.values).join('", "') + '").');
+    }
   } else if (typeof value === 'object') {
     this.validate(type, value);
   } else {
@@ -104,7 +108,7 @@ ProtobufValidator.prototype.validate = function(message, obj) {
         if (typeof Map !== 'undefined' && value instanceof Map) {
           value.forEach(function(val, key) {
             this.check(path + '.key', keyType, key);
-            this.check(path + '.value', valType, val);
+            this.check(path + '.value', valType, val, field.options);
           }, this);
         } else if (typeof value === 'object' && Object.getPrototypeOf(value) === Object.prototype) {
           if (field.map.from !== 'string')
@@ -112,7 +116,7 @@ ProtobufValidator.prototype.validate = function(message, obj) {
           
           for (var key in value) {
             this.check(path + '.key', keyType, key);
-            this.check(path + '.value', valType, value[key]);
+            this.check(path + '.value', valType, value[key], field.options);
           }
         } else {
           throw new Error(path + ' must be a Map or plain JavaScript object.');
@@ -121,20 +125,54 @@ ProtobufValidator.prototype.validate = function(message, obj) {
         var type = this.resolve(field.type, message.id);
       
         if (field.repeated) {
-          if (!Array.isArray(value))
+          if (!Array.isArray(value)) {
             throw new Error(path + ' must be an array.');
+          }
+          
+          this.checkOptions(field.options, value, path);
+          
+          var itemOptions = {};
+          for (var key in field.options) {
+            if (/^item[A-Z]/.test(key)) {
+              itemOptions[key[4].toLowerCase() + key.slice(5)] = field.options[key];
+            }
+          }
         
           for (var i = 0; i < value.length; i++) {
-            this.check(path + '[' + i + ']', type, value[i]);
+            this.check(path + '[' + i + ']', type, value[i], itemOptions);
           }
         } else {
-          this.check(path, type, value);
+          this.check(path, type, value, field.options);
         }
       }
     } else if (field.required) {
       throw new Error(path + ' is required.');
     }
   }, this);
+};
+
+ProtobufValidator.prototype.checkOptions = function(options, value, path) {
+  if (!options) return;
+  
+  if (options.length && value.length !== +options.length) {
+    throw new Error(path + ' must have length = ' + options.length);
+  }
+  
+  if (options.minLength && value.length < +options.minLength) {
+    throw new Error(path + ' must have length >= ' + options.minLength);
+  }
+  
+  if (options.maxLength && value.length > +options.maxLength) {
+    throw new Error(path + ' must have length <= ' + options.maxLength);
+  }
+  
+  if (options.min && value < +options.min) {
+    throw new Error(path + ' must be >= ' + options.min);
+  }
+  
+  if (options.max && value > +options.max) {
+    throw new Error(path + ' must be <= ' + options.max);
+  }
 };
 
 module.exports = ProtobufValidator;
