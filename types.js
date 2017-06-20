@@ -28,5 +28,8 @@ module.exports = {
   sfixed32: typeOf('number'),
   sfixed64: typeOf('number'),
   float: typeOf('number'),
-  double: typeOf('number')
+  double: typeOf('number'),
+
+  // This is not really a primative, but works for validation.
+  Any: () => true
 };

@@ -34,6 +34,18 @@ describe('protobuf-validator', function() {
     });
   });
   
+  it('should support Any type', function () {
+    validate('Basic', {
+      foo: 'hi',
+      baz: 'hi'
+    });
+
+    validate('Basic', {
+      foo: 'hi',
+      baz: 2
+    });
+  });
+
   it('should throw when a primitive value is used instead of an object for nested messages', function() {
     assert.throws(function() {
       validate('Parent', {

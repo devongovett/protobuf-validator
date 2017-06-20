@@ -1,6 +1,7 @@
 message Basic {
   required string foo = 0;
   optional int32 bar = 1;
+  optional Any baz = 2;
 }
 
 message Parent {
